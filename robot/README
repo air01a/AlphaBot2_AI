@@ -1,0 +1,10 @@
+Upgrade of the default Alphabot scripts :
+  - Can pilot Alphabot with Alexa (Alexa skills send command in a websocket dispatcher)
+  - Use a remote server to enable deep learning through Yolo for object recognition (code of server included)
+  - Module PCA9685 shutdown camera servos to avoid servo vibration
+  - WebInterface with image (and yolo bbox), can pilot through keyboard and html button
+  - Mjpeg directly done by python, no need of external mjpg streamer
+  - Command included to find a specific object and reach it
+
+
+Warning ! This code is calibrated for my own robot, please modify the file video_dir.py and modify ROLL and PITCH values according to your need.
