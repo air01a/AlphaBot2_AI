@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TapIT</title>
+	<link href="bootstrap.min.css" rel="stylesheet" media="screen"> 
+    <!-- <link href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" media="screen">-->
+	<script src="jquery.js"></script>
+    <script>
+		
+        $(function(){
+			var isTouchDevice = "ontouchstart" in document.documentElement ? true : false;
+			var BUTTON_DOWN   = isTouchDevice ? "touchstart" : "mousedown";
+			var BUTTON_UP     = isTouchDevice ? "touchend"   : "mouseup";
+			
+            $("button").bind(BUTTON_DOWN,function(){
+                $.post("/api/move",{action:this.id},function(data,status){
+                });
+            });
+
+			$("button").bind(BUTTON_UP,function(){
+                $.post("/api/move",{action:"hold"},function(data,status){
+                });
+            });
+			
+			$('input').change(function() {
+				var speed = this.value;
+				$.post('/api/move', {speed: speed});;
+			});
+        });
+		
+
+    </script>
+
+	<style type="text/css">
+		button {
+			margin: 10px 15px 10px 15px;
+			width: 50px;
+			height: 50px;
+		}
+		input {
+			margin: 10px 15px 10px 15px;
+			width: 50px;
+			height: 50px;
+		}
+    </style>
+	
+</head>
+<body>
+		<script>
+				function post(url,data) {
+						var params = typeof data == 'string' ? data : Object.keys(data).map(
+								function(k){ return encodeURIComponent(k) + '=' + encodeURIComponent(data[k]) }
+							).join('&');
+					
+						var xhr = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+						xhr.open('POST', url);
+						xhr.onreadystatechange = function() {
+							if (xhr.readyState>3 && xhr.status==200) { console.log(xhr.responseText); }
+						};
+						xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+						xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+						xhr.send(params);
+						return xhr;
+				}
+				
+				
+				document.onkeydown = function(e) {
+					switch(e.which) {
+						case 90:
+							post('/api/move','action=forward');
+							break;
+						case 81:
+							post('/api/move','action=left');
+							break;
+						case 83:
+							post('/api/move','action=backward');
+							break;
+						case 68:
+							post('/api/move','action=right');
+							break;
+						case 79:
+							post('/api/move','action=yp');
+							break;
+						case 75:
+							post('/api/move','action=xp');
+							break;
+						case 76:
+							post('/api/move','action=ym');
+							break;
+						case 77:
+							post('/api/move','action=xp');
+							break;
+						case 80:
+							post('/api/move','action=homexy');
+							break;
+						case 70:
+							post('/api/move','action=find');
+						default:
+							break;
+					}
+				};
+				
+				document.onkeyup = function(e) {
+					switch(e.which) {
+						case 90:
+							post('/api/move','action=hold');
+							break;
+						case 81:
+							post('/api/move','action=straight');
+							break;
+						case 83:
+							post('/api/move','action=hold');
+							break;
+						case 68:
+							post('/api/move','action=straight');
+							break;
+						default:
+							break;
+					}
+				};
+				
+				</script>
+<div id="container" class="container" align="center">
+	<div style="width:60%; height:40px; line-height:40px; text-align:center; font-size:20px; color:white; background-color:blue; margin:auto">
+	TapIT Web Control
+	</div><br><br>
+
+	<img src="/stream.mjpg" height="600px" width="800px"/>
+
+	<table align="center">
+		<tr>
+			<td align="center"><b>Motor Contrl</b></td>
+			<td align="center"><b>Servo Contrl</b></td>
+		</tr>
+		<tr>
+			<td>
+				<div align="center">
+					<button id="forward" class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-up"></button>
+				</div>
+				<div align="center">
+					<button id='left' class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-left"></button>
+					<!--<button id='stop' class="btn btn-lg btn-primary glyphicon glyphicon-stop"></button>-->
+					<button id='right' class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-right"></button>
+				</div>
+				<div align="center">
+					<button id='backward' class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-down"></button>
+				</div>
+			</td>
+			<td>
+				<div align="center">
+					<button id="yp" class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-up"></button>
+				</div>
+				<div align="center">
+					<button id='xm' class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-left"></button>
+					<!--<button id='stop' class="btn btn-lg btn-primary glyphicon glyphicon-stop"></button>-->
+					<button id='xp' class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-right"></button>
+				</div align="center">
+				<div align="center">
+					<button id='ym' class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-down"></button>
+				</div>
+			</td>
+		</tr>
+                <tr>
+                        <td align="center">&nbsp;</td>
+                        <td align="center">&nbsp;</td></td>
+                </tr>
+
+		<tr>
+			<td align="center"><button id='find' class="btn btn-lg btn-primary ">Fnd</button></td>
+			<td align="center"><button id='follow' class="btn btn-lg btn-primary ">Flw</button></td></td>
+		</tr>		
+	</table>
+	<input type="range" min="20" max="100", style="width:300px";>
+</div>
+</body>
+</html>

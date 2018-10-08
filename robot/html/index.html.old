@@ -1,0 +1,85 @@
+<html>
+	<head>
+		<title>TapIT, the mosquito killer</title>
+	</head>
+<body>
+<button onclick="post('/api/move','action=find')">Find</button>
+<button onclick="post('/api/move','action=follow')">Follow</button>
+<script>
+function post(url,data) {
+	    var params = typeof data == 'string' ? data : Object.keys(data).map(
+	            function(k){ return encodeURIComponent(k) + '=' + encodeURIComponent(data[k]) }
+	        ).join('&');
+	
+	    var xhr = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+	    xhr.open('POST', url);
+	    xhr.onreadystatechange = function() {
+	        if (xhr.readyState>3 && xhr.status==200) { console.log(xhr.responseText); }
+	    };
+	    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+	    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+	    xhr.send(params);
+	    return xhr;
+}
+
+
+document.onkeydown = function(e) {
+	switch(e.which) {
+		case 90:
+			post('/api/move','action=forward');
+			break;
+		case 81:
+			post('/api/move','action=left');
+			break;
+		case 83:
+			post('/api/move','action=backward');
+			break;
+		case 68:
+			post('/api/move','action=right');
+			break;
+		case 79:
+			post('/api/move','action=y%2B');
+			break;
+		case 75:
+			post('/api/move','action=x-');
+			break;
+		case 76:
+			post('/api/move','action=y-');
+			break;
+		case 77:
+			post('/api/move','action=x%2B');
+			break;
+		case 80:
+			post('/api/move','action=homexy');
+			break;
+		case 70:
+			post('/api/move','action=find');
+		default:
+			break;
+	}
+};
+
+document.onkeyup = function(e) {
+	switch(e.which) {
+		case 90:
+			post('/api/move','action=hold');
+			break;
+		case 81:
+			post('/api/move','action=straight');
+			break;
+		case 83:
+			post('/api/move','action=hold');
+			break;
+		case 68:
+			post('/api/move','action=straight');
+			break;
+		default:
+			break;
+	}
+};
+
+</script>
+	<img src="/stream.mjpg" height="600px" width="800px"/>
+</body>
+</html>
+
