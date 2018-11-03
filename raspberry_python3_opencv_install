@@ -1,0 +1,60 @@
+
+sudo apt-get purge wolfram-engine
+sudo apt-get purge libreoffice*
+sudo apt-get clean
+sudo apt-get autoremove
+
+sudo apt-get update 
+sudo apt-get upgrade
+sudo shutdown -r now
+
+sudo apt-get install build-essential cmake pkg-config -y
+sudo apt-get install libjpeg-dev libtiff5-dev libjasper-dev libpng12-dev -y
+sudo apt-get install libavcodec-dev libavformat-dev libswscale-dev libv4l-dev -y
+sudo apt-get install libxvidcore-dev libx264-dev -y
+sudo apt-get install libgtk2.0-dev libgtk-3-dev -y
+sudo apt-get install libatlas-base-dev gfortran -y
+
+
+sudo apt-get install python3 python3-setuptools python3-dev -y
+wget https://bootstrap.pypa.io/get-pip.py
+sudo python3 get-pip.py
+sudo pip3 install numpy
+
+cd ~
+wget -O opencv.zip https://github.com/opencv/opencv/archive/3.4.3.zip
+unzip opencv.zip
+wget -O opencv_contrib.zip https://github.com/Itseez/opencv_contrib/archive/3.4.3.zip
+unzip opencv_contrib.zip
+
+cd opencv-3.4.3
+mkdir build
+cd build
+cmake -D CMAKE_BUILD_TYPE=RELEASE \
+-D CMAKE_INSTALL_PREFIX=/usr/local \
+-D BUILD_opencv_java=OFF \
+-D BUILD_opencv_python2=OFF \
+-D BUILD_opencv_python3=ON \
+-D PYTHON_DEFAULT_EXECUTABLE=$(which python3) \
+-D INSTALL_C_EXAMPLES=OFF \
+-D INSTALL_PYTHON_EXAMPLES=ON \
+-D BUILD_EXAMPLES=ON\
+-D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib-3.4.3/modules \
+-D WITH_CUDA=OFF \
+-D BUILD_TESTS=OFF \
+-D BUILD_PERF_TESTS= OFF ..
+
+cat /etc/dphys-swapfile | sed -e s/CONF_SWAPSIZE=100/CONF_SWAPSIZE=1024/g > /tmp/dphys
+sudo mv /tmp/dphys /etc/dphys-swapfile
+sudo /etc/init.d/dphys-swapfile stop
+sudo /etc/init.d/dphys-swapfile start
+make -j4
+sudo make install
+sudo ldconfig
+
+cat /etc/dphys-swapfile | sed -e s/CONF_SWAPSIZE=1024/CONF_SWAPSIZE=100/g > /tmp/dphys
+sudo mv /tmp/dphys /etc/dphys-swapfile
+sudo /etc/init.d/dphys-swapfile stop
+sudo /etc/init.d/dphys-swapfile start
+cd ~
+rm opencv.zip opencv_contrib.zip
