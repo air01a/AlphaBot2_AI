@@ -58,3 +58,10 @@ sudo /etc/init.d/dphys-swapfile stop
 sudo /etc/init.d/dphys-swapfile start
 cd ~
 rm opencv.zip opencv_contrib.zip
+
+sudo apt-get install libhdf5-dev
+sudo apt install libilmbase-dev libopenexr-dev libgstreamer1.0-dev
+sudo apt-get install libqtgui4
+sudo apt-get install libqt4-test
+
+sudo pip3 install opencv-contrib-python
