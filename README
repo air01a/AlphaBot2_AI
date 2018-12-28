@@ -1,3 +1,5 @@
+This project was developed by Bonduelle IT Team, during an hackathon. The goal was to use a prebuilt robot and to implement AI functionnalities (object recognition, face detection, ...) 
+
 Upgrade of the default Alphabot scripts :
   - Can pilot Alphabot with Alexa (Alexa skills send command in a websocket dispatcher)
   - Use a remote server to enable deep learning through Yolo for object recognition (code of server included)
