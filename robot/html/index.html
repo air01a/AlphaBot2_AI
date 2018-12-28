@@ -20,13 +20,31 @@
             });
 
 			$("button").bind(BUTTON_UP,function(){
-                $.post("/api/move",{action:"hold"},function(data,status){
+			if (this.id=='iasauterelle') {
+				$('#iayolo').attr('class','btn btn-lg btn-warning')
+				$('#iasauterelle').attr('class','btn btn-lg btn-success')
+
+			}
+
+
+                        if (this.id=='iayolo') {
+                                $('#iayolo').attr('class','btn btn-lg btn-success')
+                                $('#iasauterelle').attr('class','btn btn-lg btn-warning')
+
+                        }
+
+                	$.post("/api/move",{action:"hold"},function(data,status){
                 });
             });
 			
-			$('input').change(function() {
+			$('#speed').change(function() {
 				var speed = this.value;
-				$.post('/api/move', {speed: speed});;
+				$.post('/api/move', {action:"speed",variable: speed});;
+			});
+
+			$("#centering").change(function() {
+				var centering = this.value;
+				$.post('/api/move', {action:"centering",variable: centering});;
 			});
         });
 		
@@ -37,7 +55,7 @@
 		button {
 			margin: 10px 15px 10px 15px;
 			width: 50px;
-			height: 50px;
+			height: 70px;
 		}
 		input {
 			margin: 10px 15px 10px 15px;
@@ -84,7 +102,7 @@
 							post('/api/move','action=yp');
 							break;
 						case 75:
-							post('/api/move','action=xp');
+							post('/api/move','action=xm');
 							break;
 						case 76:
 							post('/api/move','action=ym');
@@ -132,47 +150,62 @@
 	<table align="center">
 		<tr>
 			<td align="center"><b>Motor Contrl</b></td>
+			<td align="center"><b>Speed</b></td>
 			<td align="center"><b>Servo Contrl</b></td>
 		</tr>
 		<tr>
 			<td>
 				<div align="center">
-					<button id="forward" class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-up"></button>
+					<button id="forward" class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-up"><br />[z]</button>
 				</div>
 				<div align="center">
-					<button id='left' class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-left"></button>
+					<button id='left' class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-left"><br />[q]</button>
 					<!--<button id='stop' class="btn btn-lg btn-primary glyphicon glyphicon-stop"></button>-->
-					<button id='right' class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-right"></button>
+					<button id='right' class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-right"><br />[d]</button>
 				</div>
 				<div align="center">
-					<button id='backward' class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-down"></button>
+					<button id='backward' class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-down"><br />[s]</button>
 				</div>
 			</td>
 			<td>
+				<input id="speed" type="range" min="20" max="100", style="width:300px";>
+			</td>
+			<td>
 				<div align="center">
-					<button id="yp" class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-up"></button>
+					<button id="yp" class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-up"><br />[o]</button>
 				</div>
 				<div align="center">
-					<button id='xm' class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-left"></button>
+					<button id='xm' class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-left"><br />[k]</button>
 					<!--<button id='stop' class="btn btn-lg btn-primary glyphicon glyphicon-stop"></button>-->
-					<button id='xp' class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-right"></button>
+					<button id='xp' class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-right"><br />[m]</button>
 				</div align="center">
 				<div align="center">
-					<button id='ym' class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-down"></button>
+					<button id='ym' class="btn btn-lg btn-primary glyphicon glyphicon-circle-arrow-down"><br />[l]</button>
 				</div>
 			</td>
 		</tr>
                 <tr>
                         <td align="center">&nbsp;</td>
-                        <td align="center">&nbsp;</td></td>
+                        <td align="center">&nbsp;</td>
+			<td align="center">&nbsp;</td>
                 </tr>
-
+		</table>
+		<table align="center">
 		<tr>
-			<td align="center"><button id='find' class="btn btn-lg btn-primary ">Fnd</button></td>
-			<td align="center"><button id='follow' class="btn btn-lg btn-primary ">Flw</button></td></td>
+			<td align="center"><button id='find' class="btn btn-lg btn-info " style="width:100px">Fnd</button></td>
+			<td align="center"><button id='follow' class="btn btn-lg btn-info " style="width:100px">Flw</button></td></td>
 		</tr>		
+
 	</table>
-	<input type="range" min="20" max="100", style="width:300px";>
+<br /><br />
+	<table>
+		<tr>
+                        <td align="center"><button id='iayolo' class="btn btn-lg btn-success" style="width:100px" >yolo</button></td>
+                        <td align="center"><button id='iasauterelle' class="btn btn-lg btn-warning " style="width:100px">sauterelle</button></td></td>
+                </tr>
+	</table>
 </div>
+
+<center><b>Centering</b><input id="centering" type="range" min="0" max="200", style="width:300px";></center>
 </body>
 </html>

@@ -20,6 +20,7 @@ from io import StringIO
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 import os
+from ObjectRecognition import ObjectRecognition
 
 ############################################################
 # Global Vars
@@ -38,7 +39,12 @@ extensionTab={'.html':['text/html',readWSFile('html/index.html')],
 cmd = queue.Queue()
 rc = RobotController(cmd)
 gframe = queue.Queue()
-DEEP=True
+
+SERVER = '192.168.0.29'
+PORT=5006
+recognition = ObjectRecognition(SERVER,PORT)
+IAMODULES=[recognition]
+
 
 ############################################################
 # Web handler to stream mjpeg
@@ -54,9 +60,10 @@ class WebHandler(BaseHTTPRequestHandler):
                     })
 
 		action = form.getvalue("action","")
+		var = form.getvalue("variable",None)
 		self.send_response(200)
 		self.end_headers()
-		rc.executeCommand(action)
+		rc.executeCommand(action,var)
 
 	# Manage Get request for command
 	def do_GET(self):
@@ -115,7 +122,7 @@ def sayno():
 	time.sleep(0.5)
 	rc.xmax()
 	time.sleep(0.5)
-	rc.homexy()	
+	rc.homexy()
 
 # Calculate if the target is close to the center
 def distanceFromCenter(x):
@@ -123,28 +130,35 @@ def distanceFromCenter(x):
 
 
 # Find the target
-def find(context,results,sock):
+def find(context,results):
 	if 'angle' not in context.keys():
 		context['angle']=rc.getxmin()
 		context['frame']=0
 		rc.xmin()
 	else:
 		if len(results)>0:
-			cat,prob,x,y,w,h = results[0]
-			print(distanceFromCenter(x))
-			if abs(distanceFromCenter(x))<75:
+			cat,prob,x,y,w,h,module = results[0]
+			dx = distanceFromCenter(x)
+			if 'odx' in context.keys():
+				odx = context['odx']
+			else:
+				odx = 1000
+
+			if dx < 75 or dx > odx:
 				print('found')
 				context.clear()
 				return False
+			else:
+				context['odx']=dx
 
 		context['frame']+=1
-		if context['frame']%5!=0:
+		if context['frame']%3!=0:
 			return True
 
 		angle = context['angle']
 
-		context['angle']+=15
-		if context['angle']>rc.getxmax():
+		context['angle']+=100
+		if context['angle']>=rc.getxmax():
 			print('not found')
 			context.clear()
 			rc.homexy()
@@ -152,24 +166,82 @@ def find(context,results,sock):
 		rc.xplus()
 	return True
 
+# Give direction according to the camera angle
+def getCorrectDirection(angle,dira,dirb):
+	if angle<0:
+		return dira
+	else:
+		return dirb
 
+# Goto the object
+def follow(context,results):
+	if 'align' not in context.keys():
+		rc.align()
+		context['align']=True
+		context['frame']=0
+		rc.speed(40)
+		rc.forward()
+		return True
+	else:
+		# TODO -> Avancer, si pas de visu, compteur jusque 5, et si y est inférieur à 80 % -> stop et clear
+		if len(results)==1:
+			rc.forward()
+			cat,prob,x,y,w,h,module = results[0]
+			#print("Following %r %r %r" %(x,y,distanceFromCenter(x)))
+			if distanceFromCenter(x)<-40:
+				rc.left(0.9)
+				#print('following - left')
+			elif distanceFromCenter(x)>40:
+				#print('following - right')
+				rc.right(0.9)
+			else:
+				#print('following - forward')
+				rc.forward()
+
+			if y > 350 and rc.Cs.get_position_degree_y()>55:
+				rc.yminus()
+			#print(y)
+			context['frame']=0
+
+		else:
+			context['frame']+=1
+			if context['frame']>4:
+				print('Object lost')
+				rc.hold()
+				context.clear()
+				return False
+		return True
+		#context.clear()
 
 # Manage special command and send to the correct method
-def manageCommand(cmd,context,results,sock):
+def manageCommand(cmd,context,results,iamodules):
+	for iamodule in iamodules:
+		if iamodule.isActivated and iamodule.isModuleCommand(cmd):
+			return iamodule.manageCommand(cmd)
+
 	if not cmd in ['follow','find']:
 		return False
+
 	context['command']=cmd
 
 	if cmd=='find':
-		return find(context,results,sock)
+		return find(context,results)
+	
+	if cmd=='follow':
+		return follow(context,results)
 
 	return True
 
+# convert from yolo to cv2 tracker
+def convertbbox(bbox):
+	cat,prob,x,y,w,h = bbox[0]
+	return (x-w/2,y-h/2,w,h)
 
 #########################################################################
 # Webcam reading and DL management
 #########################################################################
 
+# Main loop
 def vision():
 	# Cam init
 	global gFrame
@@ -179,35 +251,26 @@ def vision():
 	camera.framerate = 10
 	rawCapture = PiRGBArray(camera, size=camera.resolution)
 
-
-	# Socket init
-	if DEEP:
-		SERVER = '172.27.5.58'
-		PORT=5006
-		sock = SockHandler(SERVER,PORT)
-		sock.connect()
-
-
 	# Command and deep leaning
-	framecount=0
-	deeplearningt0 = False
+	visionContext={}
+	visionContext['framecount']=0
+	visionContext['deeplearningt0'] = False
+	visionContext['DEEPFRAMERATE']=10
 	bbox=[]
 	context={}
-	DEEPFRAMERATE=10
+
 	# Main Loop
 	for frameR in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 		frame = frameR.array
-		if DEEP:
-			if framecount%DEEPFRAMERATE==0 or deeplearningt0:  # do we send the image to the deep learning server (one frame every 10) or t0 when search or follow command are executed
-				sBytes = cv2.imencode('.jpg', frame)[1].tobytes()   # compress to jpg
-				sock.send(sBytes)  # Send
-				bbox = json.loads(sock.recv().decode()) # recevie result
 
-		framecount+=1  
+		for module in IAMODULES:
+			if module.isActivated():
+				bbox=module.recognize(frame,visionContext,bbox)
 
+		framecount+=1 
 		# Draw rect for display
 		for box in bbox:
-			cat,prob,x,y,w,h = box
+			cat,prob,x,y,w,h,module = box
 			cv2.rectangle(frame, (int(x-w/2), int(y-h/2)), (int(x+w/2), int(y+h/2)), (255, 0, 0))
 			cv2.putText(frame, cat, (int(x), int(y)), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 0))
 
@@ -219,8 +282,7 @@ def vision():
 		if 'command' in context.keys():
 			command=context['command']
 		if command:
-			deeplearningt0 = manageCommand(command,context,bbox,sock)
-
+			visionContext['deeplearningt0'] = manageCommand(command,context,bbox,IAMODULES)
 
 		# put the image to the display thread if gframe queue is not full
 		if gframe.qsize()<50:
@@ -243,6 +305,9 @@ def main():
 	print("starting server")
 	target = threading.Thread(target=server.serve_forever,args=())
 	target.start()
+
+	for module in IAMODULES:
+		module.activate()
 
 	# Start the webcam reader and Deep Learning 
 	vision()

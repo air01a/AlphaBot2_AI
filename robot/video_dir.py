@@ -6,11 +6,12 @@ from PCA9685 import PCA9685
 
 
 class CameraServo:
- 
+	ROLL_LAT = 145
 	ROLL_MIN = 550
 	ROLL_MID = 1250
 	ROLL_MAX = 1950
 	ROLL_DEG = float(ROLL_MAX - ROLL_MIN) / 180.0
+	PITCH_LAT = 90
 	PITCH_MIN = 1550
 	PITCH_MID = 2100
 	PITCH_MAX = 2300
@@ -87,6 +88,13 @@ class CameraServo:
 	def set_position_degrees(self, servo, degrees, mid, position_min, position_max, points_per_degree):
 		position = int(degrees * points_per_degree + mid)
 		self.set_position(servo, position, position_min, position_max)
+
+	def get_position_degree(self):
+		return self.ROLL_LAT/2-self.ROLL_LAT*(self.currentPosition[0]-self.ROLL_MIN)/(self.ROLL_MAX-self.ROLL_MIN)
+	
+	def get_position_degree_y(self):
+
+		return self.PITCH_LAT/2-self.PITCH_LAT*(self.currentPosition[0]-self.PITCH_MIN)/(self.PITCH_MAX-self.ROLL_MIN)
 
 	def stop(self):
 		# Stop PWM for annoying vibration, will be reactivated if command is sent (code in the module itself)
