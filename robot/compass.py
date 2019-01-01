@@ -15,7 +15,15 @@ lsm303 = Adafruit_LSM303.LSM303(True)
 
 def getmag():
 	accel, mag = lsm303.read()
-	mag_x, mag_z, mag_y = mag
+	mag_x=0
+	mag_y=0
+	for i in range(0,10):
+		x, mag_z, y = mag
+		mag_x+=x
+		mag_y+=y
+	mag_x=mag_x/10
+	mag_y=mag_y/10
+		
 	mag_x-=36.02499999999999
 	mag_y-=61
 	mag_y*=0.9854

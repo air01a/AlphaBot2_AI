@@ -21,7 +21,7 @@ from picamera.array import PiRGBArray
 from picamera import PiCamera
 import os
 from ObjectRecognition import ObjectRecognition
-
+from AWSRekognition import AWSRekognition
 ############################################################
 # Global Vars
 ############################################################
@@ -43,8 +43,9 @@ gframe = queue.Queue()
 SERVER = '192.168.0.29'
 PORT=5006
 recognition = ObjectRecognition(SERVER,PORT)
-IAMODULES=[recognition]
-
+awsrekognition = AWSRekognition()
+#IAMODULES=[recognition]
+IAMODULES=[awsrekognition]
 
 ############################################################
 # Web handler to stream mjpeg

@@ -50,38 +50,39 @@ class RobotController:
 	def align(self):
 		angle = self.getCameraAngle()
 		speed,speed = self.getSpeed()
-		#print(speed)
 		self.speed(50)
+
 		current = compass.getmag()
+		print("current %f / angle %f" %(current,angle))
 		target = current - angle
 		if target<0:
 			target +=360
 		if target>360:
 			target -=360
-
+		print("target %f" % (target))
 		self.getCorrectDirection(angle)()
 		self.homexy()
 		delta = (target - compass.getmag())
-		while abs(delta) > 2 :
+		while abs(delta) > 4 :
 			absdelta=abs(delta)
 			if absdelta<40 and absdelta>20 :
-				self.speed(40)
-				self.getCorrectDirection(-delta)()
-			if absdelta<20:
 				self.speed(30)
 				self.getCorrectDirection(-delta)()
+			if absdelta<20:
+				self.speed(20)
+				self.getCorrectDirection(-delta)()
 			delta = target - compass.getmag()
-			#print(delta)
+			print("compass %f, delta %f" % (compass.getmag(),delta))
 		self.hold()
 		self.speed(speed)
 		
 
 	def switchyolo(self):
-		#print('Switch IA context to yolo')
+		print('Switch IA context to yolo')
 		self.queue.put('yolo')
 
 	def switchsauterelle(self):
-		#print('Switch IA context to custom weight')
+		print('Switch IA context to custom weight')
 		self.queue.put('sauterelle')
 
 	def left(self,percent=0.7):
@@ -89,10 +90,10 @@ class RobotController:
 			self.Ab.forward_left(percent)
 		else:
 			self.Ab.left()
-		#print ('recv left cmd')
+		print ('recv left cmd')
 
 	def right(self,percent=0.7):
-		#print ('recv right cmd')
+		print ('recv right cmd')
 		if self.isRunning:
                         self.Ab.forward_right(percent)
 		else:
@@ -100,56 +101,56 @@ class RobotController:
 
 	def forward(self):
 		self.isRunning=True
-		#print ('motor moving forward')
+		print ('motor moving forward')
 		self.Ab.forward()
 
 	def backward(self):
 		self.isRunning=False
-		#print ('recv backward cmd')
+		print ('recv backward cmd')
 		self.Ab.backward()
 
 	def straight(self):
-		#print ('recv home cmd')
+		print ('recv home cmd')
 		if self.isRunning:
 			self.Ab.forward()
 		else:
 			self.Ab.stop()
 
 	def hold(self):
-		#print ('recv stop cmd')
+		print ('recv stop cmd')
 		self.Ab.stop()
 		self.isRunning=False
 
 
 	def xminus(self):
-		#print ('recv x- cmd')
-		#print (self.Cs.get_position_degree())
+		print ('recv x- cmd')
+		print (self.Cs.get_position_degree())
 		self.Cs.decrease_x()
 
 	def xplus(self):
-		#print ('recv x+ cmd')
-		#print (self.Cs.get_position_degree())
+		print ('recv x+ cmd')
+		print (self.Cs.get_position_degree())
 		self.Cs.increase_x()
 
 	def yminus(self):
-		#print ('recv y- cmd')
+		print ('recv y- cmd')
 		self.Cs.decrease_y()
 
 	def yplus(self):
-		#print ('recv y+ cmd')
+		print ('recv y+ cmd')
 		self.Cs.increase_y()
 
 
 	def homexy(self):
-		#print ('home_x_y')
+		print ('home_x_y')
 		self.Cs.home_x_y()
 
 	def xmin(self):
-		#print ('xmin')
+		print ('xmin')
 		self.Cs.set_x_min()
 
 	def xmax(self):
-		#print('xmax')
+		print('xmax')
 		self.Cs.xmax()
 
 	def find(self):
@@ -184,7 +185,7 @@ class RobotController:
 	def centering(self,center):
 		center = float(center)
 		center -= 100
-		#print(center)
+		print(center)
 		if center<0:
 			self.Ab.PACorrector=abs(100+center)/100
 			self.Ab.PBCorrector=1
@@ -194,11 +195,11 @@ class RobotController:
 		(a,b)=self.Ab.getSpeed()
 		self.Ab.setPWMA(a)
 		self.Ab.setPWMB(b)
-		#print("Corrector (PA/PB) %f %f" % (self.Ab.PACorrector,self.Ab.PBCorrector))
+		print("Corrector (PA/PB) %f %f" % (self.Ab.PACorrector,self.Ab.PBCorrector))
 
 	def executeCommand(self,cmd,variable=None):
 		if not cmd in self.command.keys():
-			#print(cmd)
+			print(cmd)
 			return False
 		if variable!=None:
 			self.command[cmd](variable)
