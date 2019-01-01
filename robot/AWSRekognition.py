@@ -16,6 +16,7 @@ class AWSRekognition:
 		self.img = io.BytesIO()
 		self.thread = None
 		self.response = []
+		self.idFace=[]
 
 	def activate(self):
 		self.activated=True
@@ -56,6 +57,7 @@ class AWSRekognition:
 
 	def faceDetection(self,frame):
 		self.response=[]
+		idFace=[]
 		response = self.aws_client.detect_faces(Image={'Bytes':self.imageToBytes(frame)},Attributes=['DEFAULT'])
 		if response != None:
 			for faceDetail in response['FaceDetails']:
@@ -64,20 +66,34 @@ class AWSRekognition:
 				H1=min(int((faceDetail['BoundingBox']['Height']+0.1)*480)+R1,480)
 				W1=min(int((faceDetail['BoundingBox']['Width']+0.1)*640)+L1,640)
 
-				cropped = (L1,R1,W1,H1)
-				#self.response.append(['test',1,L1+W1/2,R1+H1/2,W1,H1,'face'])
-				try:
-					response2 = self.aws_client.search_faces_by_image(CollectionId='BETTERAVE_FACES',Image={'Bytes':self.imageToBytes(frame,cropped)})
-					for record in response2['FaceMatches']:
-							face = record['Face']['ExternalImageId']
-							x=int(record['Face']['BoundingBox']['Left']*(W1-L1))+L1
-							y=int(record['Face']['BoundingBox']['Top']*(H1-R1))+R1
-							w= int(record['Face']['BoundingBox']['Width']*(W1-L1))
-							h=int(record['Face']['BoundingBox']['Height']*(H1-R1))
-							self.response.append([face,1,x+w/2,y+h/2,w,h,'face'])
-				except:
-					self.response.append(['unknown',1,L1+(W1-L1)/2,R1+(H1-R1)/2,W1-L1,H1-R1,'face'])
+				found=False
+				for f in self.idFace:
+					if f[0]>L1 and f[0]<W1 and f[1]>R1 and f[1]<H1:
+						idFace.append([(L1+W1)/2,(R1+H1)/2,f[2]])
+						self.response.append([f[2],1,L1+(W1-L1)/2,R1+(H1-R1)/2,W1-L1,H1-R1,'face'])
+						found=True
+						break
 
+				if not found:
+
+					cropped = (L1,R1,W1,H1)
+					try:
+						response2 = self.aws_client.search_faces_by_image(CollectionId='BETTERAVE_FACES',Image={'Bytes':self.imageToBytes(frame,cropped)})
+						if len(response2['FaceMatches'])==0:
+							self.response.append(['unknown',1,L1+(W1-L1)/2,R1+(H1-R1)/2,W1-L1,H1-R1,'face'])
+						else:
+							for record in response2['FaceMatches']:
+								face = record['Face']['ExternalImageId']
+								x=int(record['Face']['BoundingBox']['Left']*(W1-L1))+L1
+								y=int(record['Face']['BoundingBox']['Top']*(H1-R1))+R1
+								w= int(record['Face']['BoundingBox']['Width']*(W1-L1))
+								h=int(record['Face']['BoundingBox']['Height']*(H1-R1))
+								self.response.append([face,1,x+w/2,y+h/2,w,h,'face'])
+								idFace.append([(L1+W1)/2,(R1+H1)/2,face])
+
+					except:
+						self.response.append(['unknown',1,L1+(W1-L1)/2,R1+(H1-R1)/2,W1-L1,H1-R1,'face'])
+		self.idFace=idFace
 
 	# Object recognition
 	def recognize(self,frame,visionContext,bbox):
