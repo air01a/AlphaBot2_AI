@@ -32,7 +32,9 @@
                                 $('#iasauterelle').attr('class','btn btn-lg btn-warning')
 
                         }
-
+			if (this.id=='follow') {
+				return;
+			}
                 	$.post("/api/move",{action:"hold"},function(data,status){
                 });
             });
@@ -200,12 +202,19 @@
 <br /><br />
 	<table>
 		<tr>
-                        <td align="center"><button id='iayolo' class="btn btn-lg btn-success" style="width:100px" >yolo</button></td>
-                        <td align="center"><button id='iasauterelle' class="btn btn-lg btn-warning " style="width:100px">sauterelle</button></td></td>
+                        <td align="center"><button id='iayolo' class="btn btn-lg btn-success" style="width:150px" >yolo</button></td>
+                        <td align="center"><button id='iasauterelle' class="btn btn-lg btn-warning " style="width:150px">sauterelle</button></td></td>
                 </tr>
 	</table>
 </div>
-
+<center>
+        <table>
+                <tr>
+                        <td align="center"><button id='aws-reco' class="btn btn-lg btn-primary" style="width:150px" >AWS RECO</button></td>
+                        <td align="center"><button id='aws-face' class="btn btn-lg btn-lnk " style="width:150px">AWS FACE</button></td>
+                </tr>
+	</table>
+</center>
 <center><b>Centering</b><input id="centering" type="range" min="0" max="200", style="width:300px";></center>
 </body>
 </html>

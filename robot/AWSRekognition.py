@@ -12,11 +12,12 @@ class AWSRekognition:
 	# Socket init
 	def __init__(self):
 		self.aws_client = boto3.client("rekognition")
-		self.commands = {}
+		self.commands = ['aws-reco','aws-face']
 		self.img = io.BytesIO()
 		self.thread = None
 		self.response = []
 		self.idFace=[]
+		self.mode=0
 
 	def activate(self):
 		self.activated=True
@@ -97,13 +98,14 @@ class AWSRekognition:
 
 	# Object recognition
 	def recognize(self,frame,visionContext,bbox):
-
 		if self.thread!=None and self.thread.isAlive():
 			return bbox
 
 		bbox=self.response
-		#self.thread = threading.Thread(target=self.labelDetection,args=(frame,))
-		self.thread = threading.Thread(target=self.faceDetection,args=(frame,))
+		if self.mode==0:
+			self.thread = threading.Thread(target=self.labelDetection,args=(frame,))
+		else:
+			self.thread = threading.Thread(target=self.faceDetection,args=(frame,))
 		self.thread.start()
 		return bbox
 
@@ -113,4 +115,9 @@ class AWSRekognition:
 		return False
 
 	def manageCommand(self,cmd):
+		if cmd in self.commands:
+			if cmd=="aws-reco":
+				self.mode=0
+			if cmd=="aws-face":
+				self.mode=1
 		return True

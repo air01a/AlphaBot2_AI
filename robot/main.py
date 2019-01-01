@@ -45,7 +45,7 @@ PORT=5006
 recognition = ObjectRecognition(SERVER,PORT)
 awsrekognition = AWSRekognition()
 #IAMODULES=[recognition]
-IAMODULES=[awsrekognition]
+IAMODULES=[awsrekognition,recognition]
 
 ############################################################
 # Web handler to stream mjpeg
@@ -217,7 +217,11 @@ def follow(context,results):
 # Manage special command and send to the correct method
 def manageCommand(cmd,context,results,iamodules):
 	for iamodule in iamodules:
-		if iamodule.isActivated and iamodule.isModuleCommand(cmd):
+		if iamodule.isModuleCommand(cmd):
+			if not iamodule.isActivated():
+				for m in iamodules:
+					m.desactivate()
+				iamodule.activate()
 			return iamodule.manageCommand(cmd)
 
 	if not cmd in ['follow','find']:
@@ -307,8 +311,9 @@ def main():
 	target = threading.Thread(target=server.serve_forever,args=())
 	target.start()
 
-	for module in IAMODULES:
-		module.activate()
+	#for module in IAMODULES:
+	#	module.activate()
+	IAMODULES[0].activate()
 
 	# Start the webcam reader and Deep Learning 
 	vision()

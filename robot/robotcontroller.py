@@ -199,7 +199,7 @@ class RobotController:
 
 	def executeCommand(self,cmd,variable=None):
 		if not cmd in self.command.keys():
-			print(cmd)
+			self.queue.put(cmd)
 			return False
 		if variable!=None:
 			self.command[cmd](variable)
