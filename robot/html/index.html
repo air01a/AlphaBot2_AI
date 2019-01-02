@@ -26,8 +26,14 @@
 
 			}
 
+			if ((this.id=='iasauterelle')||(this.id=='aws-reco')||(this.id=='aws-face')){	
+				$('#find').hide()
+				$('#follow').hide()
+			}
 
                         if (this.id=='iayolo') {
+				$('#find').show()
+				$('#follow').show()
                                 $('#iayolo').attr('class','btn btn-lg btn-success')
                                 $('#iasauterelle').attr('class','btn btn-lg btn-warning')
 
@@ -140,7 +146,13 @@
 							break;
 					}
 				};
-				
+
+				$( document ).ready(function() {
+					  // Handler for .ready() called
+						$('#find').hide()
+        		                  $('#follow').hide()
+	
+				});
 				</script>
 <div id="container" class="container" align="center">
 	<div style="width:60%; height:40px; line-height:40px; text-align:center; font-size:20px; color:white; background-color:blue; margin:auto">
