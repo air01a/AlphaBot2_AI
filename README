@@ -6,7 +6,9 @@ Upgrade of the default Alphabot scripts :
   - Module PCA9685 shutdown camera servos to avoid servo vibration
   - WebInterface with image (and yolo bbox), can pilot through keyboard and html button
   - Mjpeg directly done by python, no need of external mjpg streamer
-  - Command included to find a specific object and reach it
+  - Command  to find a specific object and reach it
+  - Can detect and recognize people (AWS API)
+  - Can read text, and react to text (turn, say yes, say no, ...)
 
 
 Warning ! This code is calibrated for my own robot, please modify the file video_dir.py and modify ROLL and PITCH values according to your need.
