@@ -12,12 +12,14 @@ class AWSRekognition:
 	# Socket init
 	def __init__(self):
 		self.aws_client = boto3.client("rekognition")
-		self.commands = ['aws-reco','aws-face']
+		self.commands = ['aws-reco','aws-face','aws-read']
 		self.img = io.BytesIO()
 		self.thread = None
 		self.response = []
 		self.idFace=[]
 		self.mode=0
+		self.activated=False
+		self.lastReadCmd=''
 
 	def activate(self):
 		self.activated=True
@@ -44,6 +46,7 @@ class AWSRekognition:
 				y=instance['BoundingBox']['Top']*480+h/2
 				prob=instance['Confidence']
 				self.response.append((cat,prob,x,y,w,h,'awsreko'))
+
 
 	def imageToBytes(self,frame,crop=None):
 		self.img.seek(0)
@@ -96,6 +99,29 @@ class AWSRekognition:
 						self.response.append(['unknown',1,L1+(W1-L1)/2,R1+(H1-R1)/2,W1-L1,H1-R1,'face'])
 		self.idFace=idFace
 
+
+	def read(self,context,frame):
+		self.response=[]
+		response = self.aws_client.detect_text(Image={'Bytes':self.imageToBytes(frame)})
+		for txt in response['TextDetections']:
+			if txt['Confidence']>90 and 'ParentId' not in txt.keys():
+				detected=txt['DetectedText']
+				box = txt['Geometry']['BoundingBox']
+				x=box['Left']*640
+				y=box['Top']*480
+				w=box['Width']*640
+				h=box['Height']*480
+				self.response.append([detected,1,x+w/2,y+h/2,w,h,'read'])
+
+				if detected.upper()=='SAY YES' and self.lastReadCmd!='YES':
+					self.lastReadCmd='YES'
+					self.context['controller'].sayyes()
+
+				if detected.upper()=='SAY NO' and self.lastReadCmd!='NO':
+					self.lastReadCmd='NO'
+					self.context['controller'].sayno()
+
+
 	# Object recognition
 	def recognize(self,frame,visionContext,bbox):
 		if self.thread!=None and self.thread.isAlive():
@@ -104,8 +130,12 @@ class AWSRekognition:
 		bbox=self.response
 		if self.mode==0:
 			self.thread = threading.Thread(target=self.labelDetection,args=(frame,))
-		else:
+		elif self.mode==1:
 			self.thread = threading.Thread(target=self.faceDetection,args=(frame,))
+		elif self.mode==2:
+			self.thread = threading.Thread(target=self.read,args=(visionContext,frame,))
+			self.lastReadCmd=''
+
 		self.thread.start()
 		return bbox
 
@@ -120,4 +150,6 @@ class AWSRekognition:
 				self.mode=0
 			if cmd=="aws-face":
 				self.mode=1
+			if cmd=="aws-read":
+				self.mode=2
 		return True

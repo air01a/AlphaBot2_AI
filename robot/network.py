@@ -8,6 +8,15 @@ class SockHandler:
 		self.IP = IP
 		self.PORT = PORT
 
+
+	def isPortOpened(self):
+		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		sock.settimeout(1)
+		result = sock.connect_ex((self.IP,self.PORT))
+		if result == 0:
+			return True
+		return False 
+
 	def connect(self):
 		# Create a TCP/IP socket
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

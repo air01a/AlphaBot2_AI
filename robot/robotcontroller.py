@@ -23,7 +23,7 @@ import websockets
 from AlphaBot import AlphaBot
 from PCA9685 import PCA9685
 import compass
-
+import time
 
 # =============================================================================
 #       Function to manage command
@@ -196,6 +196,20 @@ class RobotController:
 		self.Ab.setPWMA(a)
 		self.Ab.setPWMB(b)
 		print("Corrector (PA/PB) %f %f" % (self.Ab.PACorrector,self.Ab.PBCorrector))
+
+
+	def sayno():
+		self.xmin()
+		time.sleep(0.5)
+		self.xmax()
+		time.sleep(0.5)
+		self.xmin()
+		time.sleep(0.5)
+		self.xmax()
+		time.sleep(0.5)
+		self.homexy()
+
+
 
 	def executeCommand(self,cmd,variable=None):
 		if not cmd in self.command.keys():

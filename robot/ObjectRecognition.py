@@ -16,9 +16,13 @@ class ObjectRecognition:
 
 	def activate(self):
 		self.sock = SockHandler(self.SERVER,self.PORT)
+		if not self.sock.isPortOpened():
+			print("Port not reachable, module ObjectRecognition could not be activated")
+			return False
 		self.sock.connect()
 		self.activated=True
 		time.sleep(4)
+		return True
 
 	def desactivate(self):
 		self.sock=None
@@ -29,9 +33,9 @@ class ObjectRecognition:
 
 	def canFollow(self):
 		if self.iacontext!='sauterelle':
-			sock.send(b'sauterel')
+			self.sock.send(b'sauterel')
 			time.sleep(6)
-			iacontext='sauterelle'
+			self.iacontext='sauterelle'
 		return True
 
 
@@ -50,15 +54,16 @@ class ObjectRecognition:
 		return False
 
 	def manageCommand(self,cmd):
-		if cmd=='yolo':
-			sock.send(b'yoloyolo')
-			time.sleep(4)
-			self.iacontext='yolo'
-			return True
+		if self.activated:
+			if cmd=='yolo':
+				self.sock.send(b'yoloyolo')
+				time.sleep(4)
+				self.iacontext='yolo'
+				return True
 
-		if cmd=='sauterelle':
-			self.iacontext='sauterelle'
-			sock.send(b'sauterel')
-			time.sleep(4)
-			return True
+			if cmd=='sauterelle':
+				self.iacontext='sauterelle'
+				self.sock.send(b'sauterel')
+				time.sleep(4)
+				return True
 

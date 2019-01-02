@@ -40,12 +40,12 @@ cmd = queue.Queue()
 rc = RobotController(cmd)
 gframe = queue.Queue()
 
-SERVER = '192.168.0.29'
+SERVER = '172.27.5.42'
 PORT=5006
 recognition = ObjectRecognition(SERVER,PORT)
 awsrekognition = AWSRekognition()
 #IAMODULES=[recognition]
-IAMODULES=[awsrekognition,recognition]
+IAMODULES=[recognition,awsrekognition]
 
 ############################################################
 # Web handler to stream mjpeg
@@ -113,17 +113,6 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 ############################################################
 # Manage special command
 ############################################################
-
-def sayno():
-	rc.xmin()
-	time.sleep(0.5)
-	rc.xmax()
-	time.sleep(0.5)
-	rc.xmin()
-	time.sleep(0.5)
-	rc.xmax()
-	time.sleep(0.5)
-	rc.homexy()
 
 # Calculate if the target is close to the center
 def distanceFromCenter(x):
@@ -261,6 +250,7 @@ def vision():
 	visionContext['framecount']=0
 	visionContext['deeplearningt0'] = False
 	visionContext['DEEPFRAMERATE']=10
+	visionContext['controller'] = rc
 	bbox=[]
 	context={}
 
