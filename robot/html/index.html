@@ -20,22 +20,15 @@
             });
 
 			$("button").bind(BUTTON_UP,function(){
-			if (this.id=='iasauterelle') {
-				$('#iayolo').attr('class','btn btn-lg btn-warning')
-				$('#iasauterelle').attr('class','btn btn-lg btn-success')
 
-			}
-
-			if ((this.id=='iasauterelle')||(this.id=='aws-reco')||(this.id=='aws-face')){	
+			if ((this.id=='iayolo')||(this.id=='aws-reco')||(this.id=='aws-face')){	
 				$('#find').hide()
 				$('#follow').hide()
 			}
 
-                        if (this.id=='iayolo') {
+                        if (this.id=='iasauterelle') {
 				$('#find').show()
 				$('#follow').show()
-                                $('#iayolo').attr('class','btn btn-lg btn-success')
-                                $('#iasauterelle').attr('class','btn btn-lg btn-warning')
 
                         }
 			if (this.id=='follow') {
