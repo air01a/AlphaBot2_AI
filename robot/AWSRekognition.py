@@ -115,11 +115,12 @@ class AWSRekognition:
 
 				if detected.upper()=='SAY YES' and self.lastReadCmd!='YES':
 					self.lastReadCmd='YES'
-					self.context['controller'].sayyes()
+					context['controller'].sayyes()
 
 				if detected.upper()=='SAY NO' and self.lastReadCmd!='NO':
 					self.lastReadCmd='NO'
-					self.context['controller'].sayno()
+					print(context['controller'])
+					context['controller'].sayno()
 
 
 	# Object recognition
@@ -134,7 +135,6 @@ class AWSRekognition:
 			self.thread = threading.Thread(target=self.faceDetection,args=(frame,))
 		elif self.mode==2:
 			self.thread = threading.Thread(target=self.read,args=(visionContext,frame,))
-			self.lastReadCmd=''
 
 		self.thread.start()
 		return bbox
@@ -152,4 +152,5 @@ class AWSRekognition:
 				self.mode=1
 			if cmd=="aws-read":
 				self.mode=2
+				self.lastReadCmd=''
 		return True

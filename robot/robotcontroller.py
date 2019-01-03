@@ -151,7 +151,7 @@ class RobotController:
 
 	def xmax(self):
 		print('xmax')
-		self.Cs.xmax()
+		self.Cs.set_x_max()
 
 	def find(self):
 		self.queue.put('find')
@@ -198,7 +198,7 @@ class RobotController:
 		print("Corrector (PA/PB) %f %f" % (self.Ab.PACorrector,self.Ab.PBCorrector))
 
 
-	def sayno():
+	def sayno(self):
 		self.xmin()
 		time.sleep(0.5)
 		self.xmax()
