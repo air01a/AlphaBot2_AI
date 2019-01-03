@@ -1,4 +1,5 @@
-This project was developed by Bonduelle IT Team, during an hackathon. The goal was to use a prebuilt robot and to implement AI functionnalities (object recognition, face detection, ...) 
+This project was developed by Bonduelle IT Team, during an hackathon. The goal was to use a prebuilt robot and to implement AI functionnalities (object recognition, face detection, ...).
+As the goal was to write all the code and train models in 3 days, the code is not state of the art. 
 
 Upgrade of the default Alphabot scripts :
   - Can pilot Alphabot with Alexa (Alexa skills send command in a websocket dispatcher)
@@ -6,7 +7,8 @@ Upgrade of the default Alphabot scripts :
   - Module PCA9685 shutdown camera servos to avoid servo vibration
   - WebInterface with image (and yolo bbox), can pilot through keyboard and html button
   - Mjpeg directly done by python, no need of external mjpg streamer
-  - Command included to find a specific object and reach it
+  - Command  to find a specific object and reach it
+  - Can detect and recognize people (AWS API)
+  - Can read text, and react to text (turn, say yes, say no, ...)
 
-
-Warning ! This code is calibrated for my own robot, please modify the file video_dir.py and modify ROLL and PITCH values according to your need.
+Warning ! This code is calibrated for our own robot, please modify the file video_dir.py and modify ROLL and PITCH values according to your need.
