@@ -213,6 +213,13 @@ def manageCommand(cmd,context,results,iamodules):
 				iamodule.activate()
 			return iamodule.manageCommand(cmd)
 
+	if cmd=='donothing':
+		for m in iamodules:
+			m.desactivate()
+		results.clear()
+		return False
+
+
 	if not cmd in ['follow','find']:
 		return False
 
@@ -242,7 +249,7 @@ def vision():
 	framecount = 0
 	camera = PiCamera()
 	camera.resolution = (640, 480)
-	camera.framerate = 10
+	camera.framerate = 15
 	rawCapture = PiRGBArray(camera, size=camera.resolution)
 
 	# Command and deep leaning

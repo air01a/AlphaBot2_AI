@@ -2,6 +2,8 @@ from network import SockHandler
 import time
 import cv2
 import json
+import threading
+
 
 class ObjectRecognition:
 	sock = None
@@ -13,6 +15,10 @@ class ObjectRecognition:
 		self.SERVER=SERVER
 		self.activated=False
 		self.iacontext='sauterelle'
+		self.response=[]
+		self.tFrame=None
+		self.tFinish=False
+		self.thread=None
 
 	def activate(self):
 		self.sock = SockHandler(self.SERVER,self.PORT)
@@ -21,7 +27,8 @@ class ObjectRecognition:
 			return False
 		self.sock.connect()
 		self.activated=True
-		time.sleep(4)
+		time.sleep(7)
+		self.thread = threading.Thread(target=self.getDescriptionThread,args=())
 		return True
 
 	def desactivate(self):
@@ -39,14 +46,33 @@ class ObjectRecognition:
 		return True
 
 
+	def getDescription(self,frame):
+		sBytes = cv2.imencode('.jpg', frame)[1].tobytes()   # compress to jpg
+		self.sock.send(sBytes)
+		return json.loads(self.sock.recv().decode())
+
+	def getDescriptionThread(self):
+		while self.activated:
+			if self.tFrame!=None:
+				frame=self.tFrame
+				self.tFrame=None
+				self.tFinish=False
+				self.response = self.getDescription(frame)
+				self.tFinish=True
+
 	# Object recognition
 	def recognize(self,frame,visionContext,bbox):
 		if self.activated:
-			if visionContext['framecount']%visionContext['DEEPFRAMERATE']==0 or visionContext['deeplearningt0']:  # do we send the image to the deep learning server (one frame every 10) or t0 when search or follow command are executed
-				sBytes = cv2.imencode('.jpg', frame)[1].tobytes()   # compress to jpg
-				self.sock.send(sBytes)  # Send
-				bbox = json.loads(self.sock.recv().decode()) # recevie result
+			if visionContext['deeplearningt0']:
+				return self.getDescription(frame)
+			else:
+				if self.tFinish:
+					bbox =  self.response
+					self.tFrame=frame
+					return bbox
+
 		return bbox
+
 
 	def isModuleCommand(self,cmd):
 		if cmd in self.commands:
@@ -66,4 +92,3 @@ class ObjectRecognition:
 				self.sock.send(b'sauterel')
 				time.sleep(4)
 				return True
-
