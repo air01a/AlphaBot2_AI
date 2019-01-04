@@ -27,13 +27,15 @@ class ObjectRecognition:
 			return False
 		self.sock.connect()
 		self.activated=True
-		time.sleep(7)
+		self.tFrame=None
 		self.thread = threading.Thread(target=self.getDescriptionThread,args=())
+		time.sleep(7)
 		return True
 
 	def desactivate(self):
-		self.sock=None
 		self.activated=False
+		#self.thread.join()
+		self.sock=None
 
 	def isActivated(self):
 		return self.activated
@@ -82,13 +84,16 @@ class ObjectRecognition:
 	def manageCommand(self,cmd):
 		if self.activated:
 			if cmd=='yolo':
-				self.sock.send(b'yoloyolo')
-				time.sleep(4)
+				if self.iacontext!='yolo':
+					self.sock.send(b'yoloyolo')
+					time.sleep(4)
 				self.iacontext='yolo'
 				return True
 
 			if cmd=='sauterelle':
+				if self.iacontext!='sauterelle':
+					self.sock.send(b'sauterel')
+					time.sleep(4)
 				self.iacontext='sauterelle'
-				self.sock.send(b'sauterel')
-				time.sleep(4)
 				return True
+		return False
