@@ -114,122 +114,24 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 # Manage special command
 ############################################################
 
-# Calculate if the target is close to the center
-def distanceFromCenter(x):
-	return (x-320)
-
-
-# Find the target
-def find(context,results):
-	if 'angle' not in context.keys():
-		context['angle']=rc.getxmin()
-		context['frame']=0
-		rc.xmin()
-	else:
-		if len(results)>0:
-			cat,prob,x,y,w,h,module = results[0]
-			dx = distanceFromCenter(x)
-			if 'odx' in context.keys():
-				odx = context['odx']
-			else:
-				odx = 1000
-
-			if dx < 75 or dx > odx:
-				print('found')
-				context.clear()
-				return False
-			else:
-				context['odx']=dx
-
-		context['frame']+=1
-		if context['frame']%3!=0:
-			return True
-
-		angle = context['angle']
-
-		context['angle']+=100
-		if context['angle']>=rc.getxmax():
-			print('not found')
-			context.clear()
-			rc.homexy()
-			return False
-		rc.xplus()
-	return True
-
-# Give direction according to the camera angle
-def getCorrectDirection(angle,dira,dirb):
-	if angle<0:
-		return dira
-	else:
-		return dirb
-
-# Goto the object
-def follow(context,results):
-	if 'align' not in context.keys():
-		rc.align()
-		context['align']=True
-		context['frame']=0
-		rc.speed(40)
-		rc.forward()
-		return True
-	else:
-		# TODO -> Avancer, si pas de visu, compteur jusque 5, et si y est inférieur à 80 % -> stop et clear
-		if len(results)==1:
-			rc.forward()
-			cat,prob,x,y,w,h,module = results[0]
-			#print("Following %r %r %r" %(x,y,distanceFromCenter(x)))
-			if distanceFromCenter(x)<-40:
-				rc.left(0.9)
-				#print('following - left')
-			elif distanceFromCenter(x)>40:
-				#print('following - right')
-				rc.right(0.9)
-			else:
-				#print('following - forward')
-				rc.forward()
-
-			if y > 350 and rc.Cs.get_position_degree_y()>55:
-				rc.yminus()
-			#print(y)
-			context['frame']=0
-
-		else:
-			context['frame']+=1
-			if context['frame']>4:
-				print('Object lost')
-				rc.hold()
-				context.clear()
-				return False
-		return True
-		#context.clear()
-
 # Manage special command and send to the correct method
-def manageCommand(cmd,context,results,iamodules):
+def manageCommand(cmd,context,results,iamodules,rc):
+
 	for iamodule in iamodules:
 		if iamodule.isModuleCommand(cmd):
 			if not iamodule.isActivated():
 				for m in iamodules:
+					print("desactitaing")
 					m.desactivate()
 				iamodule.activate()
-			return iamodule.manageCommand(cmd)
+			print("End desactivating")
+			return iamodule.manageCommand(cmd,context,results,rc)
 
 	if cmd=='donothing':
 		for m in iamodules:
 			m.desactivate()
 		results.clear()
 		return False
-
-
-	if not cmd in ['follow','find']:
-		return False
-
-	context['command']=cmd
-
-	if cmd=='find':
-		return find(context,results)
-	
-	if cmd=='follow':
-		return follow(context,results)
 
 	return True
 
@@ -261,6 +163,8 @@ def vision():
 	bbox=[]
 	context={}
 
+	for module in IAMODULES:
+		visionContext
 	# Main Loop
 	for frameR in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 		frame = frameR.array
@@ -284,7 +188,7 @@ def vision():
 		if 'command' in context.keys():
 			command=context['command']
 		if command:
-			visionContext['deeplearningt0'] = manageCommand(command,context,bbox,IAMODULES)
+			visionContext['deeplearningt0'] = manageCommand(command,context,bbox,IAMODULES,rc)
 
 		# put the image to the display thread if gframe queue is not full
 		if gframe.qsize()<50:

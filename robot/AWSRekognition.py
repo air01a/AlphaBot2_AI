@@ -144,7 +144,7 @@ class AWSRekognition:
 			return True
 		return False
 
-	def manageCommand(self,cmd):
+	def manageCommand(self,cmd,visionContext,results,rc):
 		if cmd in self.commands:
 			if cmd=="aws-reco":
 				self.mode=0

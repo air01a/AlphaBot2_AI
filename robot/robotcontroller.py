@@ -40,6 +40,88 @@ class RobotController:
 		self.threadWSS = threading.Thread(target = self.runWSClient)
 		self.threadWSS.start()
 
+	def distanceFromCenter(self,x):
+		return (x-320)
+
+
+	# Find the target
+	def objectFind(self,context,results):
+		if 'angle' not in context.keys():
+			context['angle']=self.getxmin()
+			context['frame']=0
+			self.xmin()
+		else:
+			if len(results)>0:
+				cat,prob,x,y,w,h,module = results[0]
+				dx = self.distanceFromCenter(x)
+				if 'odx' in context.keys():
+					odx = context['odx']
+				else:
+					odx = 1000
+
+				if dx < 75 or dx > odx:
+					print('found')
+					context.clear()
+					return False
+				else:
+					context['odx']=dx
+
+			context['frame']+=1
+			if context['frame']%3!=0:
+				return True
+
+			angle = context['angle']
+
+			context['angle']+=100
+			if context['angle']>=self.getxmax():
+				print('not found')
+				context.clear()
+				self.homexy()
+				return False
+			self.xplus()
+		return True
+
+
+	# Goto the object
+	def objectFollow(self,context,results):
+		if 'align' not in context.keys():
+			self.align()
+			context['align']=True
+			context['frame']=0
+			self.speed(40)
+			self.forward()
+			return True
+		else:
+			# TODO -> Avancer, si pas de visu, compteur jusque 5, et si y est inférieur à 80 % -> stop et clear
+			if len(results)==1:
+				self.forward()
+				cat,prob,x,y,w,h,module = results[0]
+				#print("Following %r %r %r" %(x,y,distanceFromCenter(x)))
+				if self.distanceFromCenter(x)<-40:
+					self.left(0.9)
+					#print('following - left')
+				elif self.distanceFromCenter(x)>40:
+					#print('following - right')
+					self.right(0.9)
+				else:
+					#print('following - forward')
+					self.forward()
+
+				if y > 350 and self.Cs.get_position_degree_y()>55:
+					self.yminus()
+				#print(y)
+				context['frame']=0
+
+			else:
+				context['frame']+=1
+				if context['frame']>4:
+					print('Object lost')
+					self.hold()
+					context.clear()
+					return False
+			return True
+			#context.clear()
+
 
 	def getCorrectDirection(self,angle):
 		if angle<0:
@@ -80,6 +162,7 @@ class RobotController:
 	def switchyolo(self):
 		print('Switch IA context to yolo')
 		self.queue.put('yolo')
+		print("Ok")
 
 	def switchsauterelle(self):
 		print('Switch IA context to custom weight')
