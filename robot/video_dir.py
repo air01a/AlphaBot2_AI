@@ -77,7 +77,7 @@ class CameraServo:
 		self.set_position(1,self.PITCH_MAX,self.PITCH_MIN,self.PITCH_MAX)
 
 	def set_y_max(self):
-		self.set_position(1,self.PITCH_IN,self.PITCH_MIN,self.PITCH_MAX)
+		self.set_position(1,self.PITCH_MIN,self.PITCH_MIN,self.PITCH_MAX)
 
 	def set_position_percent(self, servo, percent, position_min, position_max):
 		if percent > 100: percent = 100

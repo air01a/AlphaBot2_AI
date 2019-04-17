@@ -40,7 +40,7 @@ cmd = queue.Queue()
 rc = RobotController(cmd)
 gframe = queue.Queue()
 
-SERVER = '172.27.5.42'
+SERVER = '172.27.4.57'
 PORT=5006
 recognition = ObjectRecognition(SERVER,PORT)
 awsrekognition = AWSRekognition()

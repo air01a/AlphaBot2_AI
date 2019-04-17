@@ -22,15 +22,21 @@ import asyncio
 import websockets
 from AlphaBot import AlphaBot
 from PCA9685 import PCA9685
-import compass
+#import compass
 import time
-
+from mpu9250 import SL_MPU9250
 # =============================================================================
 #       Function to manage command
 # =============================================================================
 class RobotController:
 
 	def __init__(self,queue):
+		self.magsensor  = SL_MPU9250(0x68,1)
+		self.magsensor.resetRegister()
+		self.magsensor.powerWakeUp()
+		self.magsensor.setAccelRange(8,True)
+		self.magsensor.setGyroRange(1000,True)
+		self.magsensor.setMagRegister('100Hz','16bit')
 		self.queue=queue
 		self.busnum=1
 		self.Cs = CameraServo()
@@ -88,7 +94,7 @@ class RobotController:
 			self.align()
 			context['align']=True
 			context['frame']=0
-			self.speed(40)
+			self.speed(50)
 			self.forward()
 			return True
 		else:
@@ -122,6 +128,29 @@ class RobotController:
 			return True
 			#context.clear()
 
+	def getAngleDifference(self,a,b):
+		c = a-b
+		if c<0:
+			c+=360
+		if c>360:
+			c-=360
+		return c
+
+	def turn360(self):
+		speed,speed = self.getSpeed()
+		self.speed(30)
+		turndone = False
+		current = self.magsensor.getDirection()
+		self.right()
+		print (current)
+		while  self.getAngleDifference(current,self.magsensor.getDirection())>20 or turndone==False:
+			print (abs(current - self.magsensor.getDirection()))
+			time.sleep(0.01)
+			if self.getAngleDifference(current,self.magsensor.getDirection()) > 40:
+				turndone=True
+		self.hold()
+		self.speed(speed)
+
 
 	def getCorrectDirection(self,angle):
 		if angle<0:
@@ -134,9 +163,9 @@ class RobotController:
 		speed,speed = self.getSpeed()
 		self.speed(50)
 
-		current = compass.getmag()
+		current = self.magsensor.getDirection()
 		print("current %f / angle %f" %(current,angle))
-		target = current - angle
+		target = current + angle
 		if target<0:
 			target +=360
 		if target>360:
@@ -144,20 +173,21 @@ class RobotController:
 		print("target %f" % (target))
 		self.getCorrectDirection(angle)()
 		self.homexy()
-		delta = (target - compass.getmag())
-		while abs(delta) > 4 :
+		delta = (self.magsensor.getDirection() - target)
+		
+		while abs(delta) > 20 :
 			absdelta=abs(delta)
 			if absdelta<40 and absdelta>20 :
 				self.speed(30)
-				self.getCorrectDirection(-delta)()
+				#self.getCorrectDirection(-delta)()
 			if absdelta<20:
 				self.speed(20)
-				self.getCorrectDirection(-delta)()
-			delta = target - compass.getmag()
-			print("compass %f, delta %f" % (compass.getmag(),delta))
+				#self.getCorrectDirection(-delta)()
+			delta = self.magsensor.getDirection()-target
+			print("compass %f, delta %f" % (self.magsensor.getDirection(),delta))
 		self.hold()
 		self.speed(speed)
-		
+
 
 	def switchyolo(self):
 		print('Switch IA context to yolo')
@@ -236,6 +266,13 @@ class RobotController:
 		print('xmax')
 		self.Cs.set_x_max()
 
+
+	def ymax(self):
+		self.Cs.set_y_max()
+
+	def ymin(self):
+		self.Cs.set_y_min()
+
 	def find(self):
 		self.queue.put('find')
 
@@ -293,6 +330,18 @@ class RobotController:
 		self.homexy()
 
 
+	def sayyes(self):
+		self.ymin()
+		time.sleep(0.5)
+		self.ymax()
+		time.sleep(0.5)
+		self.ymin()
+		time.sleep(0.5)
+		self.ymax()
+		time.sleep(0.5)
+		self.homexy()
+
+
 
 	def executeCommand(self,cmd,variable=None):
 		if not cmd in self.command.keys():
@@ -308,7 +357,7 @@ class RobotController:
 # =============================================================================
 
 	async def tapit(self) :
-		async with websockets.connect('wss://') as websocket:
+		async with websockets.connect('wss://7nrl9bn74h.execute-api.eu-west-1.amazonaws.com/dev') as websocket:
 			while 1 :
 				receive = await websocket.recv()
 				todo = json.loads(receive)
@@ -326,6 +375,9 @@ class RobotController:
 def main():
 	cmd = queue.Queue()
 	rc = RobotController(cmd)
+	#rc.sayyes()
+	#rc.sayno()
+	rc.turn360()
 	rc.runWSClient()
 
 if __name__ == '__main__':

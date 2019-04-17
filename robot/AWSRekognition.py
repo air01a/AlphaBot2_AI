@@ -12,7 +12,7 @@ class AWSRekognition:
 	# Socket init
 	def __init__(self):
 		self.aws_client = boto3.client("rekognition")
-		self.commands = ['aws-reco','aws-face','aws-read']
+		self.commands = ['aws-reco','aws-face','aws-read','read','face']
 		self.img = io.BytesIO()
 		self.thread = None
 		self.response = []
@@ -32,7 +32,6 @@ class AWSRekognition:
 
 	def canFollow(self):
 		return False
-
 
 	def labelDetection(self,frame):
 		self.response=[]
@@ -122,6 +121,19 @@ class AWSRekognition:
 					print(context['controller'])
 					context['controller'].sayno()
 
+				if detected.upper() == 'MAKE 360' and self.lastReadCmd!='360':
+					self.lastReadCmd='360'
+					context['controller'].turn360()
+
+				if detected.upper() == 'PLAY MUSIC' and self.lastReadCmd!='musik':
+					self.lastReadCmd='musik'
+					self.playMusik()
+
+	def playMusik(self):
+		from musik import Musik
+
+		mus = Musik()
+		mus.play()
 
 	# Object recognition
 	def recognize(self,frame,visionContext,bbox):
@@ -148,9 +160,9 @@ class AWSRekognition:
 		if cmd in self.commands:
 			if cmd=="aws-reco":
 				self.mode=0
-			if cmd=="aws-face":
+			if cmd=="aws-face" or cmd=='face':
 				self.mode=1
-			if cmd=="aws-read":
+			if cmd=="aws-read" or cmd=='read':
 				self.mode=2
 				self.lastReadCmd=''
 		return True
